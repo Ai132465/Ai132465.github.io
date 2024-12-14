@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCAP: Self Coding AI Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f3;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        main {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .chat-container {
+            margin-top: 20px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            color: green;
+        }
+        .bot {
+            color: blue;
+        }
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .input-container button {
+            padding: 10px;
+            margin-left: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .input-container button:hover {
+            background-color: #0056b3;
+        }
+        .feedback-container {
+            margin-top: 20px;
+        }
+        .feedback-container textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+        .feedback-container button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .feedback-container button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SCAP: Self Coding AI Project</h1>
+    </header>
+    <main>
+        <section class="chat-container">
+            <h2>Chat Interface</h2>
+            <div class="messages" id="messages"></div>
+            <div class="input-container">
+                <input type="text" id="userInput" placeholder="Type your message...">
+                <button onclick="sendMessageAI1()">Send to AI 1</button>
+                <button onclick="sendMessageAI2()">Send to AI 2</button>
+            </div>
+        </section>
+        <section class="feedback-container">
+            <h2>Provide Feedback</h2>
+            <textarea id="feedbackInput" placeholder="Provide feedback to improve the AIs..."></textarea>
+            <button onclick="processFeedback()">Submit Feedback</button>
+        </section>
+    </main>
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const feedbackInput = document.getElementById('feedbackInput');
+
+        const appendMessage = (sender, text) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = `${sender === 'bot' ? 'Bot' : 'You'}: ${text}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        const apiKey = "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";
+
+        const botResponse = async (input, aiModel) => {
+            try {
+                const response = await fetch("https://api.openai.com/v1/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "text-davinci-003",
+                        prompt: `The user said: \"${input}\". Respond appropriately as ${aiModel}:`,
+                        max_tokens: 150
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0]?.text.trim() || "I couldn't generate a response.";
+            } catch (error) {
+                console.error("Error fetching AI response:", error);
+                return "An error occurred while processing your request.";
+            }
+        };
+
+        const sendMessageAI1 = async () => {
+            const input = userInput.value.trim();
+            if (!input) return;
+
+            appendMessage('user', input);
+            userInput.value = '';
+
+            const response = await botResponse(input, "AI 1");
+            appendMessage('bot', `AI 1: ${response}`);
+        };
+
+        const sendMessageAI2 = async () => {
+            const input = userInput.value.trim();
+            if (!input) return;
+
+            appendMessage('user', input);
+            userInput.value = '';
+
+            const response = await botResponse(input, "AI 2");
+            appendMessage('bot', `AI 2: ${response}`);
+        };
+
+        const processFeedback = async () => {
+            const feedback = feedbackInput.value.trim();
+            if (!feedback) return;
+
+            const ai1Response = await botResponse(feedback, "AI 1");
+            const ai2Response = await botResponse(ai1Response, "AI 2");
+
+            appendMessage('bot', `Feedback processed. AI 1 suggested: ${ai1Response}`);
+            appendMessage('bot', `AI 2 refined: ${ai2Response}`);
+        };
+    </script>
+</body>
+</html>
